@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>12周执行系统</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+  <!-- 顶部导航 -->
+  <nav id="nav">
+    <div class="nav-brand">12周执行系统</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-page="dashboard">看板</button>
+      <button class="nav-tab" data-page="vision">愿景</button>
+      <button class="nav-tab" data-page="plan12">12周计划</button>
+      <button class="nav-tab" data-page="weekplan">周计划</button>
+      <button class="nav-tab" data-page="daily">每日打勾</button>
+      <button class="nav-tab" data-page="review">周评量</button>
+      <button class="nav-tab" data-page="timeblock">时间块</button>
+    </div>
+    <div class="nav-actions">
+      <button id="btn-export" class="btn-icon" title="导出数据">导出</button>
+      <button id="btn-import" class="btn-icon" title="导入数据">导入</button>
+      <input type="file" id="import-file" accept=".json" style="display:none;">
+    </div>
+  </nav>
+
+  <!-- 当前周次设置条 -->
+  <div id="week-bar">
+    <div class="week-bar-left">
+      <label>当前第</label>
+      <select id="current-week-select"></select>
+      <label>周 / 共12周</label>
+    </div>
+    <div class="week-bar-right">
+      <span id="week-status"></span>
+    </div>
+  </div>
+
+  <!-- 页面容器 -->
+  <main id="page-container">
+    <!-- 看板页 -->
+    <div class="page active" id="page-dashboard"></div>
+    <!-- 愿景页 -->
+    <div class="page" id="page-vision"></div>
+    <!-- 12周计划页 -->
+    <div class="page" id="page-plan12"></div>
+    <!-- 周计划页 -->
+    <div class="page" id="page-weekplan"></div>
+    <!-- 每日打勾页 -->
+    <div class="page" id="page-daily"></div>
+    <!-- 周评量页 -->
+    <div class="page" id="page-review"></div>
+    <!-- 时间块页 -->
+    <div class="page" id="page-timeblock"></div>
+  </main>
+
+  <!-- 底部 -->
+  <footer id="footer">
+    <span>12周执行系统 · 数据存储于本地浏览器</span>
+  </footer>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
