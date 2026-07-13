@@ -12,19 +12,20 @@ const DEFAULT_DATA = {
     createdAt: null,
   },
   vision: {
-    personal: {
-      spiritual: '',
-      financial: '',
-      freedom: '',
-      relationships: '',
-      health: '',
-      community: '',
+    longTerm: {
+      personal: '',
+      business: '',
+      other: '',
     },
-    business: {
-      income: '',
-      career: '',
-      growth: '',
-      contribution: '',
+    midTerm: {
+      personal: '',
+      business: '',
+      other: '',
+    },
+    yearOne: {
+      personal: '',
+      business: '',
+      other: '',
     },
     notes: '',
   },
@@ -100,7 +101,7 @@ function getStrategiesForWeek(weekNum) {
   const strategies = [];
   for (const goal of data.goals) {
     for (const s of (goal.strategies || [])) {
-      if (s.week === weekNum) {
+      if ((s.weeks && s.weeks.includes(weekNum)) || (!s.weeks && s.week === weekNum)) {
         strategies.push({
           ...s,
           goalTitle: goal.title,
@@ -332,8 +333,8 @@ function drawTrendChart(rates) {
   const chartW = w - padding.left - padding.right;
   const chartH = h - padding.top - padding.bottom;
 
-  // 背景网格
-  ctx.strokeStyle = '#eee';
+  // 背景网格（压低透明度，让达标线更突出）
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
   ctx.lineWidth = 1;
   for (let i = 0; i <= 4; i++) {
     const y = padding.top + (chartH / 4) * i;
@@ -343,8 +344,8 @@ function drawTrendChart(rates) {
     ctx.stroke();
   }
 
-  // Y轴标签
-  ctx.fillStyle = '#999';
+  // Y轴标签（压低透明度）
+  ctx.fillStyle = 'rgba(142,142,150,0.5)';
   ctx.font = '11px sans-serif';
   ctx.textAlign = 'right';
   for (let i = 0; i <= 4; i++) {
@@ -352,18 +353,24 @@ function drawTrendChart(rates) {
     ctx.fillText((100 - i * 25) + '%', padding.left - 5, y + 3);
   }
 
-  // 85%达标线
+  // 85%达标线（最清晰、最实）
   const y85 = padding.top + chartH * (1 - 85/100);
-  ctx.strokeStyle = '#2d8a4e';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = '#5AE8A0';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 3]);
   ctx.beginPath();
   ctx.moveTo(padding.left, y85);
   ctx.lineTo(w - padding.right, y85);
   ctx.stroke();
   ctx.setLineDash([]);
+  // 达标线标签
+  ctx.fillStyle = '#5AE8A0';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('达标 85%', padding.left + 4, y85 - 4);
 
   // X轴标签
+  ctx.fillStyle = 'rgba(142,142,150,0.6)';
   ctx.textAlign = 'center';
   for (let i = 0; i < 12; i++) {
     const x = padding.left + (chartW / 11) * i;
@@ -382,7 +389,7 @@ function drawTrendChart(rates) {
 
   if (points.length > 0) {
     // 连线
-    ctx.strokeStyle = '#C82506';
+    ctx.strokeStyle = '#6E5AE8';
     ctx.lineWidth = 2;
     ctx.beginPath();
     for (let i = 0; i < points.length; i++) {
@@ -395,9 +402,9 @@ function drawTrendChart(rates) {
     for (const p of points) {
       ctx.beginPath();
       ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = p.rate >= 85 ? '#2d8a4e' : p.rate >= 60 ? '#d97706' : '#dc2626';
+      ctx.fillStyle = p.rate >= 85 ? '#5AE8A0' : p.rate >= 60 ? '#E8A55A' : '#E85A5A';
       ctx.fill();
-      ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = '#16161B';
       ctx.lineWidth = 2;
       ctx.stroke();
     }
@@ -407,7 +414,7 @@ function drawTrendChart(rates) {
     if (currentPoint) {
       ctx.beginPath();
       ctx.arc(currentPoint.x, currentPoint.y, 8, 0, Math.PI * 2);
-      ctx.strokeStyle = '#C82506';
+      ctx.strokeStyle = '#E85A5A';
       ctx.lineWidth = 2;
       ctx.stroke();
     }
@@ -421,68 +428,84 @@ function renderVision() {
   const container = $('#page-vision');
   const v = data.vision;
 
+  // Migrate old data structure if needed
+  if (!v.longTerm) {
+    v.longTerm = { personal: '', business: '', other: '' };
+    v.midTerm = { personal: '', business: '', other: '' };
+    v.yearOne = { personal: '', business: '', other: '' };
+  }
+
   container.innerHTML = `
     <div class="card">
-      <div class="card-title">个人愿景 <span class="badge">你想要什么样的人生</span></div>
-      <p style="color:var(--text-secondary);margin-bottom:16px;font-size:13px">愿景是一切高绩效的起点。先想清楚你要什么，12周目标才能对齐。</p>
+      <div class="card-title">愿景 <span class="badge">你想成为什么样的人</span></div>
+      <p style="color:var(--text-secondary);margin-bottom:20px;font-size:13px">愿景是一切高绩效的起点。先想清楚你要什么，12周目标才能对齐。</p>
 
-      <div class="section-title">个人领域</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>心灵 / 精神</label>
-          <textarea data-vision="personal.spiritual">${escapeHtml(v.personal.spiritual)}</textarea>
+      <div class="vision-block">
+        <div class="vision-block-header">
+          <div class="vision-block-title">长期愿景</div>
+          <div class="vision-block-desc">你未来5-10年想要成为什么样的人</div>
         </div>
-        <div class="form-group">
-          <label>财务</label>
-          <textarea data-vision="personal.financial">${escapeHtml(v.personal.financial)}</textarea>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>自由 / 时间</label>
-          <textarea data-vision="personal.freedom">${escapeHtml(v.personal.freedom)}</textarea>
-        </div>
-        <div class="form-group">
-          <label>人际关系</label>
-          <textarea data-vision="personal.relationships">${escapeHtml(v.personal.relationships)}</textarea>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>健康</label>
-          <textarea data-vision="personal.health">${escapeHtml(v.personal.health)}</textarea>
-        </div>
-        <div class="form-group">
-          <label>社群 / 贡献</label>
-          <textarea data-vision="personal.community">${escapeHtml(v.personal.community)}</textarea>
+        <div class="form-row">
+          <div class="form-group">
+            <label>个人领域</label>
+            <textarea data-vision="longTerm.personal" placeholder="如：成为全国最著名的头部设计师">${escapeHtml(v.longTerm.personal)}</textarea>
+          </div>
+          <div class="form-group">
+            <label>事业领域</label>
+            <textarea data-vision="longTerm.business" placeholder="如：创立自己的设计品牌">${escapeHtml(v.longTerm.business)}</textarea>
+          </div>
+          <div class="form-group">
+            <label>其他</label>
+            <textarea data-vision="longTerm.other" placeholder="家庭、健康、生活方式等">${escapeHtml(v.longTerm.other)}</textarea>
+          </div>
         </div>
       </div>
 
-      <div class="section-title">事业领域</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>收入</label>
-          <textarea data-vision="business.income">${escapeHtml(v.business.income)}</textarea>
+      <div class="vision-block">
+        <div class="vision-block-header">
+          <div class="vision-block-title">中期愿景</div>
+          <div class="vision-block-desc">未来2-3年你想达到的状态</div>
         </div>
-        <div class="form-group">
-          <label>职业发展</label>
-          <textarea data-vision="business.career">${escapeHtml(v.business.career)}</textarea>
+        <div class="form-row">
+          <div class="form-group">
+            <label>个人领域</label>
+            <textarea data-vision="midTerm.personal" placeholder="如：在业界小有名气，拿几个设计奖">${escapeHtml(v.midTerm.personal)}</textarea>
+          </div>
+          <div class="form-group">
+            <label>事业领域</label>
+            <textarea data-vision="midTerm.business" placeholder="如：团队规模稳定在10人以上">${escapeHtml(v.midTerm.business)}</textarea>
+          </div>
+          <div class="form-group">
+            <label>其他</label>
+            <textarea data-vision="midTerm.other" placeholder="家庭、健康、生活方式等">${escapeHtml(v.midTerm.other)}</textarea>
+          </div>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>成长 / 学习</label>
-          <textarea data-vision="business.growth">${escapeHtml(v.business.growth)}</textarea>
+
+      <div class="vision-block">
+        <div class="vision-block-header">
+          <div class="vision-block-title">一年愿景</div>
+          <div class="vision-block-desc"></div>
         </div>
-        <div class="form-group">
-          <label>贡献 / 影响</label>
-          <textarea data-vision="business.contribution">${escapeHtml(v.business.contribution)}</textarea>
+        <div class="form-row">
+          <div class="form-group">
+            <label>个人领域</label>
+            <textarea data-vision="yearOne.personal" placeholder="如：在设计师平台发布3个优秀作品，积累到5000关注">${escapeHtml(v.yearOne.personal)}</textarea>
+          </div>
+          <div class="form-group">
+            <label>事业领域</label>
+            <textarea data-vision="yearOne.business" placeholder="如：完成2个标志性项目">${escapeHtml(v.yearOne.business)}</textarea>
+          </div>
+          <div class="form-group">
+            <label>其他</label>
+            <textarea data-vision="yearOne.other" placeholder="家庭、健康、生活方式等">${escapeHtml(v.yearOne.other)}</textarea>
+          </div>
         </div>
       </div>
 
       <div class="form-group">
         <label>补充笔记</label>
-        <textarea data-vision="notes" style="min-height:80px">${escapeHtml(v.notes)}</textarea>
+        <textarea data-vision="notes" style="min-height:80px" placeholder="其他想法、灵感、提醒...">${escapeHtml(v.notes)}</textarea>
       </div>
 
       <button class="btn btn-primary" onclick="saveVision()">保存愿景</button>
@@ -522,11 +545,12 @@ function renderPlan12() {
           <div class="list-item-content">
             <div>${escapeHtml(s.text)}</div>
             <div style="margin-top:4px">
-              <span class="tag ${s.completed?'tag-success':'tag-info'}">第${s.week}周</span>
+              <span class="tag ${s.completed?'tag-success':'tag-info'}">${formatWeeks(s)}</span>
               ${s.completed ? '<span class="tag tag-success" style="margin-left:4px">已完成</span>' : ''}
             </div>
           </div>
           <div class="list-item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editStrategy('${goal.id}','${s.id}')">改</button>
             <button class="btn btn-danger btn-sm" onclick="deleteStrategy('${goal.id}','${s.id}')">删</button>
           </div>
         </div>
@@ -552,6 +576,7 @@ function renderPlan12() {
 
         <div style="margin-top:12px;display:flex;gap:8px">
           <button class="btn btn-secondary btn-sm" onclick="addStrategy('${goal.id}')">+ 添加策略</button>
+          <button class="btn btn-secondary btn-sm" onclick="editGoal('${goal.id}')">编辑目标</button>
           <button class="btn btn-danger btn-sm" onclick="deleteGoal('${goal.id}')">删除目标</button>
         </div>
       </div>
@@ -618,10 +643,12 @@ function addStrategy(goalId) {
       <textarea id="strategy-text" placeholder="如：每周健身4次，每次30分钟"></textarea>
     </div>
     <div class="form-group">
-      <label>完成周次</label>
-      <select id="strategy-week">
-        ${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${i+1===data.meta.currentWeek?'selected':''}>第${i+1}周</option>`).join('')}
-      </select>
+      <label>完成周次（可多选）</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button type="button" class="week-chip" data-week="all" onclick="toggleWeekChip(this)">全部</button>
+        ${Array.from({length:12},(_,i)=>`<button type="button" class="week-chip" data-week="${i+1}" onclick="toggleWeekChip(this)">W${i+1}</button>`).join('')}
+      </div>
+      <div id="selected-weeks-display" style="font-size:12px;color:var(--text-secondary);margin-top:4px">未选择</div>
     </div>
   `, () => {
     const text = $('#strategy-text').value.trim();
@@ -629,16 +656,143 @@ function addStrategy(goalId) {
     const goal = data.goals.find(g => g.id === goalId);
     if (!goal) return;
     if (!goal.strategies) goal.strategies = [];
+    const selectedWeeks = getSelectedWeeks();
+    if (selectedWeeks.length === 0) { toast('请选择完成周次'); return; }
     goal.strategies.push({
       id: uid(),
       text,
-      week: parseInt($('#strategy-week').value),
+      weeks: selectedWeeks,
       completed: false,
     });
     saveData();
     closeModal();
     renderPlan12();
     toast('策略已添加');
+  });
+}
+
+// Week chip multi-select helpers
+function toggleWeekChip(btn) {
+  if (btn.dataset.week === 'all') {
+    const parent = btn.parentElement;
+    const allSelected = btn.classList.contains('active');
+    parent.querySelectorAll('.week-chip').forEach(c => {
+      if (allSelected) c.classList.remove('active');
+      else if (c.dataset.week !== 'all') c.classList.add('active');
+    });
+    if (!allSelected) btn.classList.add('active');
+  } else {
+    btn.classList.toggle('active');
+    // Update "全部" button state
+    const allBtn = btn.parentElement.querySelector('[data-week="all"]');
+    const weekBtns = btn.parentElement.querySelectorAll('[data-week]:not([data-week="all"])');
+    const allActive = Array.from(weekBtns).every(b => b.classList.contains('active'));
+    if (allBtn) allBtn.classList.toggle('active', allActive);
+  }
+  updateSelectedWeeksDisplay(btn.parentElement);
+}
+
+function updateSelectedWeeksDisplay(container) {
+  const display = container.parentElement.querySelector('#selected-weeks-display');
+  if (!display) return;
+  const weeks = getSelectedWeeks(container);
+  if (weeks.length === 0) {
+    display.textContent = '未选择';
+  } else if (weeks.length === 12) {
+    display.textContent = '全部周次（1-12周）';
+  } else {
+    display.textContent = '已选：第' + weeks.sort((a,b)=>a-b).join('、') + '周';
+  }
+}
+
+function getSelectedWeeks(container) {
+  if (!container) {
+    // Find the active modal's week chip container
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+      container = modal.querySelector('#edit-week-chips') || modal.querySelector('.week-chip')?.parentElement;
+    }
+    if (!container) {
+      container = document.querySelector('#edit-week-chips') || document.querySelector('.week-chip')?.parentElement;
+    }
+  }
+  if (!container) return [];
+  const chips = container.querySelectorAll('.week-chip.active:not([data-week="all"])');
+  return Array.from(chips).map(c => parseInt(c.dataset.week));
+}
+
+function formatWeeks(s) {
+  if (s.weeks && s.weeks.length > 0) {
+    if (s.weeks.length === 12) return '全部周次';
+    return s.weeks.map(w => 'W' + w).join('、');
+  }
+  if (s.week) return '第' + s.week + '周';
+  return '未设定';
+}
+
+function editGoal(goalId) {
+  const goal = data.goals.find(g => g.id === goalId);
+  if (!goal) return;
+  const modal = createModal('编辑目标', `
+    <div class="form-group">
+      <label>目标标题</label>
+      <input id="goal-edit-title" value="${escapeHtml(goal.title)}">
+    </div>
+    <div class="form-group">
+      <label>衡量标准（具体可衡量）</label>
+      <input id="goal-edit-measurable" value="${escapeHtml(goal.measurable || '')}">
+    </div>
+    <div class="form-group">
+      <label>截止周次</label>
+      <select id="goal-edit-deadline">
+        <option value="">无</option>
+        ${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${goal.deadline===i+1?'selected':''}>第${i+1}周</option>`).join('')}
+      </select>
+    </div>
+  `, () => {
+    const title = $('#goal-edit-title').value.trim();
+    if (!title) { toast('请输入目标标题'); return; }
+    goal.title = title;
+    goal.measurable = $('#goal-edit-measurable').value.trim();
+    goal.deadline = $('#goal-edit-deadline').value ? parseInt($('#goal-edit-deadline').value) : null;
+    saveData();
+    closeModal();
+    renderPlan12();
+    toast('目标已更新');
+  });
+}
+
+function editStrategy(goalId, strategyId) {
+  const goal = data.goals.find(g => g.id === goalId);
+  if (!goal) return;
+  const s = (goal.strategies || []).find(s => s.id === strategyId);
+  if (!s) return;
+  const currentWeeks = s.weeks || (s.week ? [s.week] : []);
+  const modal = createModal('编辑策略', `
+    <div class="form-group">
+      <label>策略描述（以动词开头，完整句子）</label>
+      <textarea id="strategy-edit-text">${escapeHtml(s.text)}</textarea>
+    </div>
+    <div class="form-group">
+      <label>完成周次（可多选）</label>
+      <div id="edit-week-chips" style="display:flex;flex-wrap:wrap;gap:6px">
+        <button type="button" class="week-chip ${currentWeeks.length===12?'active':''}" data-week="all" onclick="toggleWeekChip(this)">全部</button>
+        ${Array.from({length:12},(_,i)=>`<button type="button" class="week-chip ${currentWeeks.includes(i+1)?'active':''}" data-week="${i+1}" onclick="toggleWeekChip(this)">W${i+1}</button>`).join('')}
+      </div>
+      <div id="selected-weeks-display" style="font-size:12px;color:var(--text-secondary);margin-top:4px">${currentWeeks.length===12?'全部周次':currentWeeks.length>0?'已选：第'+currentWeeks.join('、')+'周':'未选择'}</div>
+    </div>
+  `, () => {
+    const text = $('#strategy-edit-text').value.trim();
+    if (!text) { toast('请输入策略描述'); return; }
+    const selectedWeeks = getSelectedWeeks();
+    if (selectedWeeks.length === 0) { toast('请选择完成周次'); return; }
+    s.text = text;
+    s.weeks = selectedWeeks;
+    delete s.week;
+    saveData();
+    closeModal();
+    renderPlan12();
+    toast('策略已更新');
   });
 }
 
@@ -866,7 +1020,7 @@ function toggleDailyCheck(key, itemId) {
 }
 
 // ════════════════════════════════════════════
-// 页面6: 周评量
+// 页面6: 周量评
 // ════════════════════════════════════════════
 function renderReview() {
   const container = $('#page-review');
@@ -915,7 +1069,7 @@ function renderReview() {
 
   container.innerHTML = `
     <div class="card">
-      <div class="card-title">第${week}周评量卡</div>
+      <div class="card-title">第${week}周量评卡</div>
 
       <div style="text-align:center;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:16px">
         <div class="rate-value ${rateClass}" style="font-size:48px">${rate}%</div>
@@ -930,7 +1084,7 @@ function renderReview() {
       <textarea id="review-adjustments" style="min-height:80px" placeholder="基于本周的执行情况，下周需要怎么调整？">${escapeHtml(review.adjustments || '')}</textarea>
 
       <div style="margin-top:16px;display:flex;gap:8px">
-        <button class="btn btn-primary" onclick="saveReview(${week})">保存评量</button>
+        <button class="btn btn-primary" onclick="saveReview(${week})">保存量评</button>
       </div>
     </div>
 
@@ -960,7 +1114,7 @@ function saveReview(week) {
     savedAt: new Date().toISOString(),
   };
   saveData();
-  toast('评量已保存');
+  toast('量评已保存');
 }
 
 // ════════════════════════════════════════════
@@ -973,9 +1127,10 @@ function renderTimeBlock() {
 
   const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
   const blockTypes = [
-    { key: 'strategy', label: '策略块', desc: '做最重要的事，3小时不被打扰', cls: 'block-strategy' },
-    { key: 'buffer', label: '缓冲块', desc: '处理突发和杂事', cls: 'block-buffer' },
-    { key: 'break', label: '休息块', desc: '恢复精力', cls: 'block-break' },
+    { key: 'strategy', label: '策略块', desc: '大段时间，3小时不被打扰。做长期价值特别大的事', cls: 'block-strategy' },
+    { key: 'execution', label: '执行块', desc: '被动必须做的事，按小时切换节奏', cls: 'block-execution' },
+    { key: 'buffer', label: '缓冲块', desc: '把碎事集中起来一起处理，不打断其他块', cls: 'block-buffer' },
+    { key: 'break', label: '休息块', desc: '主动恢复精力，保持最佳状态', cls: 'block-break' },
   ];
 
   let daysHtml = '';
@@ -1016,7 +1171,7 @@ function renderTimeBlock() {
     <div class="card" style="background:var(--accent-light);border-color:var(--accent)">
       <p style="font-size:13px;color:var(--text-secondary)">
         <strong>时间块系统</strong><br>
-        把一天分成三块：策略块（做最重要的事）、缓冲块（处理突发和杂事）、休息块。
+        把一天分成四块：策略块（大段时间做长期价值最大的事）、执行块（被动必须做的事，按小时切换节奏）、缓冲块（把碎事集中处理）、休息块（主动恢复精力）。四块咬合，保持最佳状态。
         节奏一旦建立，习惯系统就能接管。
       </p>
     </div>

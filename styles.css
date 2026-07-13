@@ -1,24 +1,29 @@
 /* ============================================
    12周执行系统 - 样式表
-   风格：简洁实用，与T004同频共振追踪表一致
+   风格：暗色科技风，与久坐提醒/追踪表一致
    ============================================ */
 
 :root {
-  --bg: #f5f5f5;
-  --card-bg: #ffffff;
-  --text: #1a1a1a;
-  --text-secondary: #666;
-  --text-light: #999;
-  --border: #e0e0e0;
-  --accent: #C82506;
-  --accent-light: #fff5f3;
-  --success: #2d8a4e;
-  --success-light: #f0faf3;
-  --warning: #d97706;
-  --danger: #dc2626;
-  --info: #2563eb;
+  --bg: #0F0F12;
+  --card-bg: #16161B;
+  --card-bg-2: #1C1C24;
+  --bg-hover: #22222C;
+  --text: #E8E8EC;
+  --text-secondary: #8E8E96;
+  --text-light: #5A5A62;
+  --border: rgba(255,255,255,0.06);
+  --border-hover: rgba(255,255,255,0.12);
+  --accent: #6E5AE8;
+  --accent-glow: rgba(110,90,232,0.15);
+  --accent-light: rgba(110,90,232,0.08);
+  --success: #5AE8A0;
+  --success-light: rgba(90,232,160,0.1);
+  --warning: #E8A55A;
+  --danger: #E85A5A;
+  --info: #5A9EE8;
   --radius: 8px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
 }
 
 * {
@@ -77,7 +82,7 @@ body {
 }
 
 .nav-tab:hover {
-  background: var(--bg);
+  background: var(--card-bg-2);
   color: var(--text);
 }
 
@@ -189,7 +194,7 @@ select {
   border-radius: 6px;
   font-size: 14px;
   font-family: inherit;
-  background: #fff;
+  background: var(--card-bg-2);
   color: var(--text);
 }
 
@@ -200,7 +205,7 @@ textarea:focus,
 select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-light);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 textarea {
@@ -245,17 +250,18 @@ label {
 }
 
 .btn-primary:hover {
-  background: #a01d05;
+  background: #5A4AD0;
 }
 
 .btn-secondary {
-  background: var(--bg);
+  background: var(--card-bg-2);
   color: var(--text);
   border: 1px solid var(--border);
 }
 
 .btn-secondary:hover {
-  border-color: var(--text-secondary);
+  border-color: var(--border-hover);
+  background: var(--bg-hover);
 }
 
 .btn-danger {
@@ -267,13 +273,36 @@ label {
 }
 
 .btn-danger:hover {
-  background: #fef2f2;
+  background: rgba(232,90,90,0.1);
   border-color: var(--danger);
 }
 
 .btn-sm {
   padding: 4px 10px;
   font-size: 13px;
+}
+
+/* ── 周次多选chips ── */
+.week-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card-bg-2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+.week-chip:hover {
+  border-color: var(--accent, #6E5AE8);
+  color: var(--accent, #6E5AE8);
+}
+.week-chip.active {
+  background: var(--accent, #6E5AE8);
+  border-color: var(--accent, #6E5AE8);
+  color: #fff;
 }
 
 /* ── 列表项 ── */
@@ -285,12 +314,12 @@ label {
   border: 1px solid var(--border);
   border-radius: 6px;
   margin-bottom: 8px;
-  background: #fff;
-  transition: all 0.15s;
+  background: var(--card-bg-2);
+  transition: var(--transition);
 }
 
 .list-item:hover {
-  border-color: var(--text-light);
+  border-color: var(--border-hover);
 }
 
 .list-item-content {
@@ -368,10 +397,10 @@ label {
 }
 
 .tag-success { background: var(--success-light); color: var(--success); }
-.tag-warning { background: #fffbeb; color: var(--warning); }
-.tag-danger  { background: #fef2f2; color: var(--danger); }
-.tag-info    { background: #eff6ff; color: var(--info); }
-.tag-default { background: var(--bg); color: var(--text-secondary); }
+.tag-warning { background: rgba(232,165,90,0.1); color: var(--warning); }
+.tag-danger  { background: rgba(232,90,90,0.1); color: var(--danger); }
+.tag-info    { background: rgba(90,158,232,0.1); color: var(--info); }
+.tag-default { background: var(--card-bg-2); color: var(--text-secondary); }
 
 /* ── 空状态 ── */
 .empty-state {
@@ -458,9 +487,18 @@ label {
   color: var(--text-secondary);
 }
 
-.timeblock-cell.block-strategy { background: #eff6ff; border-color: #bfdbfe; }
-.timeblock-cell.block-buffer   { background: #fffbeb; border-color: #fde68a; }
-.timeblock-cell.block-break    { background: #f0fdf4; border-color: #bbf7d0; }
+/* ── 时间块 ── */
+.timeblock-cell {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.timeblock-cell.block-strategy  { background: rgba(90,158,232,0.08); border-color: rgba(90,158,232,0.2); }
+.timeblock-cell.block-execution { background: rgba(110,90,232,0.08); border-color: rgba(110,90,232,0.2); }
+.timeblock-cell.block-buffer    { background: rgba(232,165,90,0.08); border-color: rgba(232,165,90,0.2); }
+.timeblock-cell.block-break     { background: rgba(90,232,160,0.08); border-color: rgba(90,232,160,0.2); }
 
 /* ── 模态框 ── */
 .modal-overlay {
@@ -478,13 +516,15 @@ label {
 }
 
 .modal {
-  background: #fff;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
 
 .modal-title {
@@ -537,6 +577,28 @@ label {
   margin: 16px 0 8px;
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
+}
+
+/* ── 愿景块 ── */
+.vision-block {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--card-bg-2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.vision-block-header {
+  margin-bottom: 12px;
+}
+.vision-block-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary, #E8E8EC);
+}
+.vision-block-desc {
+  font-size: 12px;
+  color: var(--text-secondary, #8E8E96);
+  margin-top: 2px;
 }
 
 /* ── 完成率显示 ── */
