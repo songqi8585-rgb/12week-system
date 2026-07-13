@@ -417,48 +417,17 @@ function drawTrendChart(rates) {
       ctx.stroke();
     }
 
-    // 当前周高亮 — 奔跑小人
+    // 当前周高亮
     const currentPoint = points.find(p => p.week === data.meta.currentWeek);
     if (currentPoint) {
-      const cx = currentPoint.x, cy = currentPoint.y;
-      // 光晕
       ctx.beginPath();
-      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(232,90,90,0.15)';
+      ctx.arc(currentPoint.x, currentPoint.y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(232,90,90,0.2)';
       ctx.fill();
-      // 奔跑小人 - 简笔画
+      ctx.beginPath();
+      ctx.arc(currentPoint.x, currentPoint.y, 5, 0, Math.PI * 2);
       ctx.strokeStyle = '#E85A5A';
-      ctx.fillStyle = '#E85A5A';
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      // 头
-      ctx.beginPath();
-      ctx.arc(cx, cy - 8, 3, 0, Math.PI * 2);
-      ctx.fill();
-      // 身体（倾斜）
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 5);
-      ctx.lineTo(cx - 2, cy + 2);
-      ctx.stroke();
-      // 前腿
-      ctx.beginPath();
-      ctx.moveTo(cx - 2, cy + 2);
-      ctx.lineTo(cx + 4, cy + 7);
-      ctx.stroke();
-      // 后腿
-      ctx.beginPath();
-      ctx.moveTo(cx - 2, cy + 2);
-      ctx.lineTo(cx - 5, cy + 6);
-      ctx.stroke();
-      // 前臂
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 3);
-      ctx.lineTo(cx + 5, cy - 1);
-      ctx.stroke();
-      // 后臂
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 3);
-      ctx.lineTo(cx - 4, cy - 5);
+      ctx.lineWidth = 2.5;
       ctx.stroke();
     }
   }
