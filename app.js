@@ -323,9 +323,17 @@ function drawTrendChart(rates) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
+  if (rect.width === 0) {
+    // Canvas not laid out yet, retry after layout
+    setTimeout(() => drawTrendChart(rates), 50);
+    return;
+  }
   canvas.width = rect.width * 2;
   canvas.height = rect.height * 2;
   ctx.scale(2, 2);
+
+  // Clear canvas (in case of re-render)
+  ctx.clearRect(0, 0, rect.width, rect.height);
 
   const w = rect.width;
   const h = rect.height;
@@ -409,13 +417,48 @@ function drawTrendChart(rates) {
       ctx.stroke();
     }
 
-    // 当前周高亮
+    // 当前周高亮 — 奔跑小人
     const currentPoint = points.find(p => p.week === data.meta.currentWeek);
     if (currentPoint) {
+      const cx = currentPoint.x, cy = currentPoint.y;
+      // 光晕
       ctx.beginPath();
-      ctx.arc(currentPoint.x, currentPoint.y, 8, 0, Math.PI * 2);
+      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(232,90,90,0.15)';
+      ctx.fill();
+      // 奔跑小人 - 简笔画
       ctx.strokeStyle = '#E85A5A';
+      ctx.fillStyle = '#E85A5A';
       ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      // 头
+      ctx.beginPath();
+      ctx.arc(cx, cy - 8, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // 身体（倾斜）
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 5);
+      ctx.lineTo(cx - 2, cy + 2);
+      ctx.stroke();
+      // 前腿
+      ctx.beginPath();
+      ctx.moveTo(cx - 2, cy + 2);
+      ctx.lineTo(cx + 4, cy + 7);
+      ctx.stroke();
+      // 后腿
+      ctx.beginPath();
+      ctx.moveTo(cx - 2, cy + 2);
+      ctx.lineTo(cx - 5, cy + 6);
+      ctx.stroke();
+      // 前臂
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 3);
+      ctx.lineTo(cx + 5, cy - 1);
+      ctx.stroke();
+      // 后臂
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 3);
+      ctx.lineTo(cx - 4, cy - 5);
       ctx.stroke();
     }
   }
@@ -448,15 +491,15 @@ function renderVision() {
         <div class="form-row">
           <div class="form-group">
             <label>个人领域</label>
-            <textarea data-vision="longTerm.personal" placeholder="如：成为全国最著名的头部设计师">${escapeHtml(v.longTerm.personal)}</textarea>
+            <textarea data-vision="longTerm.personal" placeholder="你想成为什么样的人">${escapeHtml(v.longTerm.personal)}</textarea>
           </div>
           <div class="form-group">
             <label>事业领域</label>
-            <textarea data-vision="longTerm.business" placeholder="如：创立自己的设计品牌">${escapeHtml(v.longTerm.business)}</textarea>
+            <textarea data-vision="longTerm.business" placeholder="你想在行业里达到什么位置">${escapeHtml(v.longTerm.business)}</textarea>
           </div>
           <div class="form-group">
             <label>其他</label>
-            <textarea data-vision="longTerm.other" placeholder="家庭、健康、生活方式等">${escapeHtml(v.longTerm.other)}</textarea>
+            <textarea data-vision="longTerm.other" placeholder="你还想做的一些事">${escapeHtml(v.longTerm.other)}</textarea>
           </div>
         </div>
       </div>
@@ -469,15 +512,15 @@ function renderVision() {
         <div class="form-row">
           <div class="form-group">
             <label>个人领域</label>
-            <textarea data-vision="midTerm.personal" placeholder="如：在业界小有名气，拿几个设计奖">${escapeHtml(v.midTerm.personal)}</textarea>
+            <textarea data-vision="midTerm.personal" placeholder="你想在哪些方面有明显进步">${escapeHtml(v.midTerm.personal)}</textarea>
           </div>
           <div class="form-group">
             <label>事业领域</label>
-            <textarea data-vision="midTerm.business" placeholder="如：团队规模稳定在10人以上">${escapeHtml(v.midTerm.business)}</textarea>
+            <textarea data-vision="midTerm.business" placeholder="你想取得什么阶段性成果">${escapeHtml(v.midTerm.business)}</textarea>
           </div>
           <div class="form-group">
             <label>其他</label>
-            <textarea data-vision="midTerm.other" placeholder="家庭、健康、生活方式等">${escapeHtml(v.midTerm.other)}</textarea>
+            <textarea data-vision="midTerm.other" placeholder="你还想做的一些事">${escapeHtml(v.midTerm.other)}</textarea>
           </div>
         </div>
       </div>
@@ -490,15 +533,15 @@ function renderVision() {
         <div class="form-row">
           <div class="form-group">
             <label>个人领域</label>
-            <textarea data-vision="yearOne.personal" placeholder="如：在设计师平台发布3个优秀作品，积累到5000关注">${escapeHtml(v.yearOne.personal)}</textarea>
+            <textarea data-vision="yearOne.personal" placeholder="这一年你想完成什么">${escapeHtml(v.yearOne.personal)}</textarea>
           </div>
           <div class="form-group">
             <label>事业领域</label>
-            <textarea data-vision="yearOne.business" placeholder="如：完成2个标志性项目">${escapeHtml(v.yearOne.business)}</textarea>
+            <textarea data-vision="yearOne.business" placeholder="这一年你想推进到哪一步">${escapeHtml(v.yearOne.business)}</textarea>
           </div>
           <div class="form-group">
             <label>其他</label>
-            <textarea data-vision="yearOne.other" placeholder="家庭、健康、生活方式等">${escapeHtml(v.yearOne.other)}</textarea>
+            <textarea data-vision="yearOne.other" placeholder="你还想做的一些事">${escapeHtml(v.yearOne.other)}</textarea>
           </div>
         </div>
       </div>
@@ -1127,9 +1170,9 @@ function renderTimeBlock() {
 
   const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
   const blockTypes = [
-    { key: 'strategy', label: '策略块', desc: '大段时间，3小时不被打扰。做长期价值特别大的事', cls: 'block-strategy' },
-    { key: 'execution', label: '执行块', desc: '被动必须做的事，按小时切换节奏', cls: 'block-execution' },
-    { key: 'buffer', label: '缓冲块', desc: '把碎事集中起来一起处理，不打断其他块', cls: 'block-buffer' },
+    { key: 'strategy', label: '策略块', desc: '长时间进入心流状态，做最重要的事', cls: 'block-strategy' },
+    { key: 'execution', label: '执行块', desc: '按小时切换，处理必须交付的事', cls: 'block-execution' },
+    { key: 'buffer', label: '缓冲块', desc: '集中处理碎事，不打断其他块', cls: 'block-buffer' },
     { key: 'break', label: '休息块', desc: '主动恢复精力，保持最佳状态', cls: 'block-break' },
   ];
 
@@ -1171,8 +1214,7 @@ function renderTimeBlock() {
     <div class="card" style="background:var(--accent-light);border-color:var(--accent)">
       <p style="font-size:13px;color:var(--text-secondary)">
         <strong>时间块系统</strong><br>
-        把一天分成四块：策略块（大段时间做长期价值最大的事）、执行块（被动必须做的事，按小时切换节奏）、缓冲块（把碎事集中处理）、休息块（主动恢复精力）。四块咬合，保持最佳状态。
-        节奏一旦建立，习惯系统就能接管。
+        把一天分成四块：策略块（长时间进入心流状态，做最重要的事）、执行块（按小时切换，处理必须交付的事）、缓冲块（集中处理碎事，不打断其他块）、休息块（主动恢复精力，保持最佳状态）。四块咬合，该投入时投入，该进入心流时进入，该休息时休息。节奏一旦建立，习惯系统就能接管。
       </p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">
@@ -1199,9 +1241,10 @@ function addTimeBlock(week, dayKey) {
     <div class="form-group">
       <label>类型</label>
       <select id="tb-type">
-        <option value="strategy">策略块（做最重要的事）</option>
-        <option value="buffer">缓冲块（处理突发和杂事）</option>
-        <option value="break">休息块</option>
+        <option value="strategy">策略块（长时间进入心流状态，做最重要的事）</option>
+        <option value="execution">执行块（按小时切换，处理必须交付的事）</option>
+        <option value="buffer">缓冲块（集中处理碎事，不打断其他块）</option>
+        <option value="break">休息块（主动恢复精力，保持最佳状态）</option>
       </select>
     </div>
     <div class="form-group">
